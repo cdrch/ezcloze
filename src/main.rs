@@ -59,18 +59,18 @@ fn get_nth_arg(n: usize) -> Result<OsString, Box<Error>> {
 fn cloze(sentence: String) -> String {
     let mut cloze = String::new();
     let mut new_word = true;
-    let mut word_count = 0;
+    let mut word_count = 1;
 
     for c in sentence.chars() {
         if new_word {
-            cloze = format!("{}{{c{}::{}", cloze, word_count.to_string(), c);
+            cloze = format!("{}{{{{c{}::{}", cloze, word_count.to_string(), c);
             new_word = false;
             word_count += 1;
         } else if c == ' ' {
-            cloze = format!("{}}}{}", cloze, c);
+            cloze = format!("{}}}}}{}", cloze, c);
             new_word = true;
         } else if c == '.' {
-            cloze = format!("{}}}{}", cloze, c);
+            cloze = format!("{}}}}}{}", cloze, c);
         } else {
             cloze.push(c);
         }

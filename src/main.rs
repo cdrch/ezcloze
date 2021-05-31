@@ -15,28 +15,35 @@ fn main() {
 }
 
 fn run() -> Result<(), Box<Error>> {
-    let example_sentence_en = "I am good.".to_string();
-    let example_sentence_tp = "mi pona.".to_string();
+    //let example_sentence_en = "I am good.".to_string();
+    //let example_sentence_tp = "mi pona.".to_string();
 
     let file_path = get_first_arg()?;
     let mut rdr = csv::ReaderBuilder::new()
-        .has_headers(true)
+        .has_headers(false)
         .delimiter(b'\t')
         .double_quote(false)
         .escape(Some(b'\\'))
         .flexible(true)
         .comment(Some(b'#'))
-        //.from_reader(io::stdin());
         .from_path(file_path)
         .unwrap();
+
+    let mut is_header_row = true;
     for result in rdr.records() {
-        let record = result?;
+        let mut record = result?;
+        if is_header_row {
+            record.push_field("Cloze Text");
+            is_header_row = false;
+        } else {
+            record.push_field(cloze(record.get(0).unwrap().to_string()).as_str());
+        }
         println!("{:?}", record);
     }
 
-    let result = cloze(example_sentence_en);
+    //let result = cloze(example_sentence_en);
 
-    println!("{}", result);
+    //println!("{}", result);
 
     Ok(())
 }
@@ -49,8 +56,6 @@ fn get_first_arg() -> Result<OsString, Box<Error>> {
         Some(file_path) => Ok(file_path),
     }
 }
-
-//fn import_file(filepath: &str) ->
 
 fn cloze(sentence: String) -> String {
     let mut cloze = String::new();

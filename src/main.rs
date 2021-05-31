@@ -15,10 +15,8 @@ fn main() {
 }
 
 fn run() -> Result<(), Box<Error>> {
-    //let example_sentence_en = "I am good.".to_string();
-    //let example_sentence_tp = "mi pona.".to_string();
-
-    let file_path = get_first_arg()?;
+    let input_file_path = get_nth_arg(1)?;
+    let output_file_path = get_nth_arg(2)?;
     let mut rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -26,9 +24,13 @@ fn run() -> Result<(), Box<Error>> {
         .escape(Some(b'\\'))
         .flexible(true)
         .comment(Some(b'#'))
-        .from_path(file_path)
+        .from_path(input_file_path)
         .unwrap();
 
+    let mut wtr = csv::WriterBuilder::new()
+        .delimiter(b'\t')
+        .from_path(output_file_path)
+        .unwrap();
     let mut is_header_row = true;
     for result in rdr.records() {
         let mut record = result?;
@@ -38,21 +40,18 @@ fn run() -> Result<(), Box<Error>> {
         } else {
             record.push_field(cloze(record.get(0).unwrap().to_string()).as_str());
         }
-        println!("{:?}", record);
+        println!("{:?}", &record);
+        wtr.write_record(&record)?;
     }
-
-    //let result = cloze(example_sentence_en);
-
-    //println!("{}", result);
 
     Ok(())
 }
 
-/// Returns the first positional argument sent to this process. If there are no
+/// Returns the nth positional argument sent to this process. If there are no
 /// positional arguments, then this returns an error.
-fn get_first_arg() -> Result<OsString, Box<Error>> {
-    match env::args_os().nth(1) {
-        None => Err(From::from("expected 1 argument, but got none")),
+fn get_nth_arg(n: usize) -> Result<OsString, Box<Error>> {
+    match env::args_os().nth(n) {
+        None => Err(From::from("missing an argument")),
         Some(file_path) => Ok(file_path),
     }
 }

@@ -3,8 +3,6 @@ extern crate csv;
 use std::env;
 use std::error::Error;
 use std::ffi::OsString;
-use std::fs::File;
-use std::io;
 use std::process;
 
 fn main() {

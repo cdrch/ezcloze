@@ -56,6 +56,7 @@ fn get_nth_arg(n: usize) -> Result<OsString, Box<Error>> {
     }
 }
 
+/// Converts a sentence into a cloze deletion suitable for Anki import.
 fn cloze(sentence: String) -> String {
     let mut cloze = String::new();
     let mut new_word = true;

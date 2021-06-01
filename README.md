@@ -42,6 +42,7 @@ Planned improvements (in no particular order) include:
 - Accepting CSVs and other formats
 - Accepting lists of learned and unknown words, such that only learned words can be deleted in cloze output.
 - Automatically removing column headers, to remove any manual steps for Anki import that relate to deleting those headers
+
 Potential future improvements (in no particular order) include:
 - A GUI (graphical user interface)
 - Bulk import of sentences from specific formats

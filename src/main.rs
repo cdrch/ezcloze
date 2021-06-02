@@ -3,8 +3,6 @@ extern crate csv;
 use std::env;
 use std::error::Error;
 use std::ffi::OsString;
-use std::fs::File;
-use std::io;
 use std::process;
 
 fn main() {
@@ -12,6 +10,7 @@ fn main() {
         println!("{}", err);
         process::exit(1);
     }
+    println!("Done!");
 }
 
 fn run() -> Result<(), Box<Error>> {
@@ -26,7 +25,6 @@ fn run() -> Result<(), Box<Error>> {
         .comment(Some(b'#'))
         .from_path(input_file_path)
         .unwrap();
-
     let mut wtr = csv::WriterBuilder::new()
         .delimiter(b'\t')
         .from_path(output_file_path)
@@ -40,7 +38,6 @@ fn run() -> Result<(), Box<Error>> {
         } else {
             record.push_field(cloze(record.get(0).unwrap().to_string()).as_str());
         }
-        println!("{:?}", &record);
         wtr.write_record(&record)?;
     }
 
@@ -51,11 +48,12 @@ fn run() -> Result<(), Box<Error>> {
 /// positional arguments, then this returns an error.
 fn get_nth_arg(n: usize) -> Result<OsString, Box<Error>> {
     match env::args_os().nth(n) {
-        None => Err(From::from("missing an argument")),
+        None => Err(From::from(format!("Problem with argument #{}.", n))),
         Some(file_path) => Ok(file_path),
     }
 }
 
+/// Converts a sentence into a cloze deletion suitable for Anki import.
 fn cloze(sentence: String) -> String {
     let mut cloze = String::new();
     let mut new_word = true;

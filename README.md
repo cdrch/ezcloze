@@ -46,3 +46,5 @@ Planned improvements (in no particular order) include:
 Potential future improvements (in no particular order) include:
 - A GUI (graphical user interface)
 - Bulk import of sentences from specific formats
+
+See the EZ Cloze project in the GitHub repository for future plans. Note that all milestone dates are currently estimates, and very much not set in stone.

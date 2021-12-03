@@ -25,9 +25,75 @@ fn run() -> Result<(), Box<Error>> {
         );
     } else if args.len() == 2 {
         // Read from clipboard and output to clipboard
+
+        // First, get the clipboard's contents
         let mut ctx = ClipboardContext::new().unwrap();
-        println!("{:?}", ctx.get_contents().unwrap());
-        ctx.set_contents("some string".to_owned()).unwrap();
+        // println!("{:?}", ctx.get_contents().unwrap());
+
+        // Convert the contents into a vec
+        let contents = ctx.get_contents().unwrap();
+        let contents = contents.trim();
+        let content_vec: Vec<&str> = contents.split("\r\n").collect();
+
+        // Iterate over the vec, converting each element into a group of hinted cloze deletions
+        let mut cloze_deletions: Vec<String> = Vec::new();
+        for line in content_vec.iter() {
+            let mut counter = 0;
+            let mut cloze_deletion = String::new();
+            let cloze_deletion_iter = line.split(" ");
+
+            // Make hinted cloze deletion
+            for word in cloze_deletion_iter {
+                // println!("{}", word);
+                counter += 1;
+
+                // Split first character from the rest of the word
+                let first_char = word.chars().next().unwrap();
+                let rest_of_word = word.chars().skip(1).collect::<String>();
+
+                cloze_deletion.push_str(&format!("{}", first_char));
+                cloze_deletion.push_str("{{c");
+                cloze_deletion.push_str(counter.to_string().as_str());
+                cloze_deletion.push_str(":");
+                cloze_deletion.push_str(&rest_of_word);
+                cloze_deletion.push_str("}}");
+                cloze_deletion.push_str(" ");
+            }
+            // println!("{}", cloze_deletion);
+            cloze_deletions.push(cloze_deletion.trim().to_string());
+        }
+
+        // Iterate over the vec, converting each element into a group of standard cloze deletions
+        // TODO: This is a repeat of the above loop, can it be fixed?
+        for line in content_vec.iter() {
+            let mut counter = 0;
+            let mut cloze_deletion = String::new();
+            let cloze_deletion_iter = line.split(" "); // TODO: Should split_whitespace() be used here?
+            let mut cloze_deletion = String::new();
+            // Make standard cloze deletion
+            for word in cloze_deletion_iter {
+                // println!("{}", word);
+                counter += 1;
+                cloze_deletion.push_str("{{c");
+                cloze_deletion.push_str(counter.to_string().as_str());
+                cloze_deletion.push_str(":");
+                cloze_deletion.push_str(word);
+                cloze_deletion.push_str("}}");
+                cloze_deletion.push_str(" ");
+            }
+            // println!("{}", cloze_deletion);
+            cloze_deletions.push(cloze_deletion.trim().to_string());
+        }
+
+        // Turn the vec of cloze deletions back into a string
+        let mut result_string = String::new();
+        for cloze in cloze_deletions.iter() {
+            result_string.push_str(cloze.as_str());
+            result_string.push_str("\r\n");
+        }
+
+        // Then, write the contents to the clipboard
+        ctx.set_contents(result_string).unwrap();
     } else if args.len() == 3 {
         // Read from file and output to clipboard
         unimplemented!();

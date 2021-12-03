@@ -1,8 +1,12 @@
+extern crate copypasta;
 extern crate csv;
 
+use crate::copypasta::ClipboardProvider;
+use copypasta::ClipboardContext;
 use std::env;
 use std::error::Error;
 use std::ffi::OsString;
+use std::path::Path;
 use std::process;
 
 fn main() {
@@ -14,31 +18,52 @@ fn main() {
 }
 
 fn run() -> Result<(), Box<Error>> {
-    let input_file_path = get_nth_arg(2)?;
-    let output_file_path = get_nth_arg(3)?;
-    let mut rdr = csv::ReaderBuilder::new()
-        .has_headers(false)
-        .delimiter(b'\t')
-        .double_quote(false)
-        .escape(Some(b'\\'))
-        .flexible(true)
-        .comment(Some(b'#'))
-        .from_path(input_file_path)
-        .unwrap();
-    let mut wtr = csv::WriterBuilder::new()
-        .delimiter(b'\t')
-        .from_path(output_file_path)
-        .unwrap();
-    let mut is_header_row = true;
-    for result in rdr.records() {
-        let mut record = result?;
-        if is_header_row {
-            record.push_field("Cloze Text");
-            is_header_row = false;
-        } else {
-            record.push_field(cloze(record.get(0).unwrap().to_string()).as_str());
+    let args = std::env::args();
+    if args.len() < 2 {
+        return Err(
+            "What? How did this happen? You had too few arguments to run the program!".into(),
+        );
+    } else if args.len() == 2 {
+        // Read from clipboard and output to clipboard
+        let mut ctx = ClipboardContext::new().unwrap();
+        println!("{:?}", ctx.get_contents().unwrap());
+        ctx.set_contents("some string".to_owned()).unwrap();
+    } else if args.len() == 3 {
+        // Read from file and output to clipboard
+        unimplemented!();
+    } else if args.len() == 4 {
+        // Read from file and output file
+        let input_file_path = get_nth_arg(2)?;
+        let output_file_path = get_nth_arg(3)?;
+
+        let mut rdr = csv::ReaderBuilder::new()
+            .has_headers(false)
+            .delimiter(b'\t')
+            .double_quote(false)
+            .escape(Some(b'\\'))
+            .flexible(true)
+            .comment(Some(b'#'))
+            .from_path(input_file_path)
+            .unwrap();
+        let mut wtr = csv::WriterBuilder::new()
+            .delimiter(b'\t')
+            .from_path(output_file_path)
+            .unwrap();
+        let mut is_header_row = true;
+        for result in rdr.records() {
+            let mut record = result?;
+            if is_header_row {
+                record.push_field("Cloze Text");
+                is_header_row = false;
+            } else {
+                record.push_field(cloze(record.get(0).unwrap().to_string()).as_str());
+            }
+            wtr.write_record(&record)?;
         }
-        wtr.write_record(&record)?;
+
+        return Ok(());
+    } else {
+        return Err("Too many arguments".into());
     }
 
     Ok(())

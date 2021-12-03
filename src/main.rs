@@ -14,8 +14,8 @@ fn main() {
 }
 
 fn run() -> Result<(), Box<Error>> {
-    let input_file_path = get_nth_arg(1)?;
-    let output_file_path = get_nth_arg(2)?;
+    let input_file_path = get_nth_arg(2)?;
+    let output_file_path = get_nth_arg(3)?;
     let mut rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')

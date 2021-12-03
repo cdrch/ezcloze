@@ -38,35 +38,14 @@ fn run() -> Result<(), Box<Error>> {
         // Iterate over the vec, converting each element into a group of hinted cloze deletions
         let mut cloze_deletions: Vec<String> = Vec::new();
         for line in content_vec.iter() {
-            let mut counter = 0;
-            let mut cloze_deletion = String::new();
-            let cloze_deletion_iter = line.split(" ");
-
-            // Make hinted cloze deletion
-            for word in cloze_deletion_iter {
-                // println!("{}", word);
-                counter += 1;
-
-                // Split first character from the rest of the word
-                let first_char = word.chars().next().unwrap();
-                let rest_of_word = word.chars().skip(1).collect::<String>();
-
-                cloze_deletion.push_str(&format!("{}", first_char));
-                cloze_deletion.push_str("{{c");
-                cloze_deletion.push_str(counter.to_string().as_str());
-                cloze_deletion.push_str(":");
-                cloze_deletion.push_str(&rest_of_word);
-                cloze_deletion.push_str("}}");
-                cloze_deletion.push_str(" ");
-            }
-            // println!("{}", cloze_deletion);
-            cloze_deletions.push(cloze_deletion.trim().to_string());
+            let cloze = cloze_hinted(line.trim().to_string());
+            cloze_deletions.push(cloze);
         }
 
         // Iterate over the vec, converting each element into a group of standard cloze deletions
         // TODO: This is a repeat of the above loop, can it be fixed?
         for line in content_vec.iter() {
-            let cloze = cloze(line.trim().to_string());
+            let cloze = cloze_standard(line.trim().to_string());
             cloze_deletions.push(cloze);
         }
 
@@ -107,7 +86,7 @@ fn run() -> Result<(), Box<Error>> {
                 record.push_field("Cloze Text");
                 is_header_row = false;
             } else {
-                record.push_field(cloze(record.get(0).unwrap().to_string()).as_str());
+                record.push_field(&cloze_standard(record.get(0).unwrap().to_string()).as_str());
             }
             wtr.write_record(&record)?;
         }
@@ -130,16 +109,27 @@ fn get_nth_arg(n: usize) -> Result<OsString, Box<Error>> {
 }
 
 /// Converts a sentence into a cloze deletion suitable for Anki import.
-fn cloze(sentence: String) -> String {
+fn cloze(sentence: String, hinted: bool) -> String {
+    let mut make_hint = hinted;
     let mut cloze = String::new();
     let mut new_word = true;
     let mut word_count = 1;
 
     for c in sentence.chars() {
         if new_word {
-            cloze = format!("{}{{{{c{}::{}", cloze, word_count.to_string(), c);
-            new_word = false;
-            word_count += 1;
+            if make_hint {
+                // TODO: Consider adding a check for if this is a one-character word
+                cloze = format!("{}{}", cloze, c);
+                make_hint = false;
+            } else {
+                cloze = format!("{}{{{{c{}::{}", cloze, word_count.to_string(), c);
+                new_word = false;
+                // Reset the hint for the next word only if this should be a hinted cloze
+                if hinted {
+                    make_hint = true;
+                }
+                word_count += 1;
+            }
         } else if c == ' ' {
             cloze = format!("{}}}}}{}", cloze, c);
             new_word = true;
@@ -150,4 +140,12 @@ fn cloze(sentence: String) -> String {
         }
     }
     cloze
+}
+
+fn cloze_standard(sentence: String) -> String {
+    cloze(sentence, false)
+}
+
+fn cloze_hinted(sentence: String) -> String {
+    cloze(sentence, true)
 }

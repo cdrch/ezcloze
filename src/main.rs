@@ -143,7 +143,7 @@ fn cloze(sentence: String) -> String {
         } else if c == ' ' {
             cloze = format!("{}}}}}{}", cloze, c);
             new_word = true;
-        } else if c == '.' {
+        } else if c == '.' || c == '!' || c == '?' {
             cloze = format!("{}}}}}{}", cloze, c);
         } else {
             cloze.push(c);

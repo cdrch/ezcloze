@@ -66,23 +66,8 @@ fn run() -> Result<(), Box<Error>> {
         // Iterate over the vec, converting each element into a group of standard cloze deletions
         // TODO: This is a repeat of the above loop, can it be fixed?
         for line in content_vec.iter() {
-            let mut counter = 0;
-            let mut cloze_deletion = String::new();
-            let cloze_deletion_iter = line.split(" "); // TODO: Should split_whitespace() be used here?
-            let mut cloze_deletion = String::new();
-            // Make standard cloze deletion
-            for word in cloze_deletion_iter {
-                // println!("{}", word);
-                counter += 1;
-                cloze_deletion.push_str("{{c");
-                cloze_deletion.push_str(counter.to_string().as_str());
-                cloze_deletion.push_str(":");
-                cloze_deletion.push_str(word);
-                cloze_deletion.push_str("}}");
-                cloze_deletion.push_str(" ");
-            }
-            // println!("{}", cloze_deletion);
-            cloze_deletions.push(cloze_deletion.trim().to_string());
+            let cloze = cloze(line.trim().to_string());
+            cloze_deletions.push(cloze);
         }
 
         // Turn the vec of cloze deletions back into a string
